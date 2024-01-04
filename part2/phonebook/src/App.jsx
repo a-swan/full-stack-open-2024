@@ -3,6 +3,7 @@ import { Header } from './components/Header'
 import { Form } from './components/Form'
 import { Table } from './components/Table'
 import { TextInput } from './components/TextInput'
+import { Notification } from './components/Notification'
 import personService from './services/persons'
 
 const App = () => {
@@ -10,6 +11,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filter, setFilter] = useState('')
+  const [notification, setNotification] = useState(null)
+  const [notificationType, setNotificationType] = useState('error')
 
   useEffect(() => {
     console.log('effect');
@@ -41,6 +44,23 @@ const App = () => {
           .updatePerson(updatePerson.id, newPerson)
           .then(response => {
             setPersons(persons.map(person => person.id !== updatePerson.id ? person : response.data))
+
+            setNotification(`Successfully updated ${response.data.name}`)
+            setNotificationType('success')
+
+            setTimeout(() => {
+              setNotification(null)
+            }, 5000)
+          })
+          .catch(error => {
+            console.error(`Error updating ${updatePerson.id}: ${error}`)
+
+            setNotification(`Error updating ${updatePerson.name}`)
+            setNotificationType('error')
+
+            setTimeout(() => {
+              setNotification(null)
+            }, 5000)
           })
       }
       return
@@ -49,16 +69,34 @@ const App = () => {
     personService
       .createPerson(newPerson)
       .then(response => {
-        console.log(response);
         copyPersons.push(response.data)
         setPersons(copyPersons)
+
+        setNotification(`Successfully added ${response.data.name} to phonebook`)
+        setNotificationType('success')
+
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
+      })
+      .catch(error => {
+        console.error(`Error adding ${JSON.stringify(newPerson)}: ${error}`)
+
+        setNotification(`Error adding ${newPerson.name}`)
+        setNotificationType('error')
+
+        setTimeout(() => {
+          setNotification(null)
+        }, 5000)
       })
   }
 
   const clickDelete = (id) => {
     console.log(`Id ${id} clicked`);
 
-    if(window.confirm(`Delete ${persons.filter(person => person.id === id)[0].name}?`)){
+    const deletedPerson = persons.find(person => person.id === id)
+
+    if(window.confirm(`Delete ${deletedPerson.name}?`)){
       const copyPersons = persons.filter(person => person.id != id)
 
       personService
@@ -66,12 +104,37 @@ const App = () => {
         .then(response => {
           console.log(response)
           setPersons(copyPersons)
+
+          setNotification(`Successfully deleted ${deletedPerson.name} from phonebook`)
+          setNotificationType('success')
+  
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)  
+        })
+        .catch(error => {
+          personService
+            .getAll()
+            .then(response => {
+              console.log('refreshing data...')
+              setPersons(response.data)
+            })
+    
+          console.error(`Error deleting ${deletedPerson.id}: ${error}`)
+
+          setNotification(`Error deleting ${deletedPerson.name}`)
+          setNotificationType('error')
+
+          setTimeout(() => {
+            setNotification(null)
+          }, 5000)
         })
     }
   }
 
   return (
     <div>
+      <Notification message={notification} type={notificationType} />
       <Header text="Phonebook" />
       <TextInput label="filter: " onInputChanged={filterChange} />
       <Header text="Add a New Contact" />
