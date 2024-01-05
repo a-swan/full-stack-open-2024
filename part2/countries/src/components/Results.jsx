@@ -1,23 +1,21 @@
-import { Country } from './Country'
-import { Button } from './Button'
-
 import { PropTypes } from 'prop-types'
 
-export const Results = ({ countries, showCountryClicked }) => {
-  console.log(countries.length)
+import { Country } from './Country'
+import { Button } from './Button'
+import { Weather } from './Weather'
 
+export const Results = ({ countries, showCountryClicked }) => {
   if(countries.length === 1){
     // Print out country data
     return(
       <div>
-        {countries.map(country => {
-          return(
-            <Country 
-              key={country.name.common} 
-              country={country} 
-            />
-          )
-        })}
+        <Country 
+          key={countries[0].name.common} 
+          country={countries[0]} 
+        />
+        <Weather
+          capital={countries[0].capital[0]}
+        />
       </div>
     )
   } else if(countries.length <= 10) {
